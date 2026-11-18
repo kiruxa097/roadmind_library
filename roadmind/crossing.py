@@ -2,8 +2,6 @@ import cv2
 import pandas as pd
 from ultralytics import YOLO
 
-model = YOLO('yolo26n.pt')
-
 # Вспомогательная фун-ция, чтобы контролировать нахождение объекта относительно линии
 # Используем чтобы отследить пересечение линии объектом
 def line_side(P, A, B):
@@ -17,6 +15,10 @@ def line_side(P, A, B):
 # 4. point2 - координаты второй точки линии, через которую будем считать машины
 def create_crossings(adres, file_name, point1 = (0, 0), point2 = (960, 720)):
 
+    # подгружаем модель
+    model = YOLO('yolo26n.pt')
+
+    # преобразуем видео
     video = cv2.VideoCapture(adres)
 
     # проверка на успешное открытие файла, ловим ошибку
@@ -41,6 +43,7 @@ def create_crossings(adres, file_name, point1 = (0, 0), point2 = (960, 720)):
     # массив, который в последствии станет csv
     crossing_data = []
 
+    # проходим по всем кадрам видео
     while ret:
 
         # словарь в котором по ключу - id, будем хранить информацию об объекта на текущем кадре
@@ -124,9 +127,14 @@ def create_crossings(adres, file_name, point1 = (0, 0), point2 = (960, 720)):
         # т.к переходим на след. кадр, номер увеличаем
         frame_id += 1
 
+    # преобразуем наш массив в DataFrame
     df = pd.DataFrame(crossing_data)
+
+    # переводим в csv
     df.to_csv(file_name, index=False)
 
+    # заканчиваем работу с файлом
     video.release()
 
+    # возвращаем csv, чтобы можно было с ним работать 
     return df
